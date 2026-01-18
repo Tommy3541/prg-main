@@ -29,6 +29,20 @@ default_kohout = {}
 #    "nemoc": False,
 #}
 
+mistnosti = {
+    'obyvak': {
+        'soubor': 'sendvic2/Gemini_Generated_Image_xxerbyxxerbyxxer.png',
+        'kocka_top': '170px',
+        'kocka_left': '11%',
+    },
+    'kuchyne': {
+        'soubor': 'sendvic2/kuchyn2.png',
+        'kocka_top': '200px',
+        'kocka_left': '11%',
+    },
+}
+aktualni_mistnost = 'obyvak'
+
 def krmeni():
     global zprava
     kohout["hlad"] -= 10
@@ -117,6 +131,26 @@ def harakiri():
     death.open()
     status()
     save()
+
+def mistnost1():
+    ui.notify("Vstupuješ do další místnosti...")
+
+def zmen_mistnost(nova_mistnost):
+    global aktualni_mistnost
+    aktualni_mistnost = nova_mistnost
+        
+    pozadi.source = mistnosti[nova_mistnost]['soubor']
+        
+    obrazek.style(f"top: {mistnosti[nova_mistnost]['kocka_top']}; left: {mistnosti[nova_mistnost]['kocka_left']}; transform: translateX(-50%);")
+        
+    if nova_mistnost == 'kuchyne':
+        tlacitko_dvere.set_visibility(False)
+        tlacitko_zpet.set_visibility(True)
+        ovladaci_panel.style('top: 200px;')
+    else:
+        tlacitko_dvere.set_visibility(True)
+        tlacitko_zpet.set_visibility(False)
+        ovladaci_panel.style('top: 130px')
 
 def spanek():
     global zprava
@@ -214,6 +248,12 @@ def main():
     global hlad_bar
     global zivoty_bar
 
+    global pozadi
+    global tlacitko_dvere
+    global tlacitko_zpet
+
+    global ovladaci_panel
+
     tlacitka1 = {
         "krmeni": krmeni,
         "napit": napit,
@@ -239,14 +279,20 @@ def main():
             ui.button('ZKUSIT ZNOVU', on_click=lambda: (reset(), ui.navigate.reload())).props('color=red icon=refresh')
         
     with ui.element("div").classes("w-full h-screen flex items-center justify-center flex-col gap-5"):
-        ui.image("sendvic2/Gemini_Generated_Image_xxerbyxxerbyxxer.png").classes("absolute top-0 left-0 w-full h-full")
-       
-        obrazek = ui.image(vystrihni_obrazek(0, 1)).classes("h-90 w-90 image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;").style('top: 190px;')
+        pozadi = ui.image(mistnosti[aktualni_mistnost]['soubor']).classes("absolute top-0 left-0 w-full h-full")
+
+        tlacitko_dvere = ui.button(on_click=lambda: zmen_mistnost('kuchyne')).classes('absolute bg-transparent border-none cursor-pointer').style('left: 3%; top: 14%; width: 10%; height: 65%; z-index: 20; shadow: none;')
+
+        tlacitko_zpet = ui.button(on_click=lambda: zmen_mistnost('obyvak')).classes('absolute bg-transparent border-none cursor-pointer').style('left: 84%; top: 16%; width: 8%; height: 60%; z-index: 20; shadow: none;')
+        tlacitko_zpet.set_visibility(False)
+
+        obrazek = ui.image(vystrihni_obrazek(0, 1)).classes("h-90 w-90 image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;").style('top: 170px;')
 
 #        with ui.element("div").classes("absolute top-35 w-full flex justify-center z-5"):
 #            zprava = ui.label("Co chceš dělat?").classes("text-white text-5xl font-black text-center").style('text-shadow: 2px 2px 10px rgba(0,0,0,0.9); width: 80%;')
  
         with ui.element("div").classes("absolute top-0 w-full flex justify-center p-6 z-10"):
+            
             with ui.card().classes('bg-black/40 backdrop-blur-md border-b-2 border-white/20 p-4 min-w-[500px] items-center'):
                 zprava = ui.label("Co chceš dělat?").classes("text-white text-2xl font-medium uppercase tracking-wider")
                 
@@ -267,17 +313,20 @@ def main():
                         ui.label('ŽIVOTY').classes('text-[10px] text-red-400 font-bold')
                         zivoty_bar = ui.linear_progress(value=1.0).classes('w-32 h-8 rounded-full').props('color=red show-value show-value format=%.0f%%')
 
-        with ui.grid(columns=2):
-            for jmeno, funkce in tlacitka1.items():
-                ui.button(jmeno, on_click=funkce, color="#9F6553").style('top: 110px;')
-        with ui.grid(columns=3):
-            for jmeno, funkce in tlacitka2.items():
-                ui.button(jmeno, on_click=funkce, color="#A0AE9F").style('top: 110px;')
-        with ui.grid(columns=2):
-            for jmeno, funkce in tlacitka3.items():
-                ui.button(jmeno, on_click=funkce, color="red").style('top: 110px;').classes("rounded-full")
-            for jmeno, funkce in tlacitka4.items():
-                ui.button(jmeno, on_click=funkce, color="black").style('color: white; top: 110px;').classes("rounded-full animate-pulse")
+        with ui.element("div").classes("w-full flex flex-col items-center gap-2") as ovladaci_panel:
+            with ui.grid(columns=2):
+                for jmeno, funkce in tlacitka1.items():
+                    ui.button(jmeno, on_click=funkce, color="#9F6553")
+            with ui.grid(columns=3):
+                for jmeno, funkce in tlacitka2.items():
+                    ui.button(jmeno, on_click=funkce, color="#A0AE9F")
+            with ui.grid(columns=2):
+                for jmeno, funkce in tlacitka3.items():
+                    ui.button(jmeno, on_click=funkce, color="red").classes("rounded-full")
+                for jmeno, funkce in tlacitka4.items():
+                    ui.button(jmeno, on_click=funkce, color="black").style('color: white;').classes("rounded-full animate-pulse")
+            
+            ovladaci_panel.style('position: relative; top: 130px;')
     
     ui.button(on_click=lambda: app.native.main_window.toggle_fullscreen()).props('icon=fullscreen flat color=white').classes('absolute top-5 right-5 z-30')
 
